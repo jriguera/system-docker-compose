@@ -136,7 +136,7 @@ pushd docker
     $DOCKER tag $NAME $DOCKER_TAG:$VERSION
     $DOCKER push $DOCKER_TAG
 
-    $DOCKER save -o /tmp/$DOCKER_TAG-$VERSION.tgz $DOCKER_TAG:$VERSION
+    $DOCKER save -o "/tmp/$NAME-$VERSION.tgz" $DOCKER_TAG:$VERSION
 popd
 
 # Create annotated tag
