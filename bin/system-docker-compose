@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# Run docker-compose in a container
+#
+set -e
+
+# Main executable
+DOCKER=/usr/bin/docker
+DOCKER_RUN_OPTIONS="--no-ansi"
+DOCKER_HOST="/var/run/docker.sock"
+DOCKER_VOLUMES=""
+
+# Disable the service
+ENABLED=1
+# Image to run
+IMAGE="jriguera/dockercompose"
+# Name of the docker-compose project (by default is the name of the folder)
+NAME="system"
+
+###
+
+if [ $(id -u) -ne 0 ]
+then
+   echo "Error, please run as root!"
+   exit 1
+fi
+
+if [ "$#" -lt 1 ]
+then
+    echo "Error, not enough parameters"
+    exit 1
+fi
+
+if [ "${1}" == "-h" ] || [ "${1}" == "--help" ]
+then
+    echo "Usage:  $0 <stackdir> [list-docker-compose-args]"
+    echo "  Manages system docker-compose stack on <stackdir> folder"
+    echo "  Settings are defined in <stackdir>/config.env"
+    echo
+    echo "docker-compose:"
+    set -- --help "$@"
+    STACKDIR=$(pwd)
+else
+    STACKDIR=$(realpath "${1}")
+    if ! [ -d "${STACKDIR}" ]
+    then
+        echo "Error, stack folder does not exists"
+        exit 1
+    fi
+    shift
+fi
+
+if [ -r "${STACKDIR}/config.env" ]
+then
+    echo "Loading ${STACKDIR}/config.env ..."
+    source "${STACKDIR}/config.env"
+fi
+
+if [ "${ENABLED}" != "1" ]
+then
+    echo "Exit 0, not enabled. See ${STACKDIR}/config.env"
+    exit 0
+fi
+
+if [ -S "${DOCKER_HOST}" ]; then
+    DOCKER_ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST} -e DOCKER_HOST"
+else
+    DOCKER_ADDR="-e DOCKER_HOST -e DOCKER_TLS_VERIFY -e DOCKER_CERT_PATH"
+fi
+
+# Setup volume mounts for compose config and context
+WORKDIR=/data/$(basename "${STACKDIR}")
+DOCKER_VOLUMES="${DOCKER_VOLUMES} -v ${STACKDIR}:${WORKDIR}"
+DOCKER_VOLUMES="${DOCKER_VOLUMES} -v /root:/root"
+
+# Handle userns security
+[ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && DOCKER_RUN_OPTIONS="${DOCKER_RUN_OPTIONS} --userns=host"
+[ -n "${NAME}" ] && set -- -p "${NAME}" "$@"
+
+exec ${DOCKER} run --rm ${DOCKER_RUN_OPTIONS} ${DOCKER_ADDR} ${DOCKER_VOLUMES} -w "${WORKDIR}" $IMAGE "$@"
+

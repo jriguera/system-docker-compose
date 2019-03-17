@@ -1,0 +1,19 @@
+[Unit]
+Description=Docker system compose refresh and reload target
+StopWhenUnneeded=true
+Requires=network-online.target docker.service docker-compose.target
+Wants=network-online.target docker.service docker-compose.target
+After=network-online.target docker.service docker-compose.target
+ConditionFileIsExecutable=/usr/bin/docker
+ConditionFileIsExecutable=/bin/system-docker-compose
+
+[Service]
+# The dummy program will exit
+Type=oneshot
+# Execute a dummy program
+ExecStart=/bin/true
+
+[Install]
+WantedBy=multi-user.target
+Also=docker-compose-refresh.timer
+
