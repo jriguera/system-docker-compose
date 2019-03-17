@@ -124,4 +124,4 @@ systemctl enable "docker-compose-refresh@`systemd-escape --path ${COMPOSE_CONFIG
 
 # Author
 
-Jose Riguera `<jriguera@gmail.com>`
+Jose Riguera <jriguera@gmail.com>
