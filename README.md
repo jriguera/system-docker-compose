@@ -106,7 +106,7 @@ install -m 644 -g root -o root systemd/docker-compose-refresh@.service /lib/syst
 install -m 644 -g root -o root systemd/docker-compose-refresh.service /lib/systemd/system
 install -m 644 -g root -o root systemd/docker-compose-refresh.timer /lib/systemd/system
 # binary wrapper
-install -m 755 -g root -o root bin/system-docker-compose /bin/system-docker-compose
+install -m 755 -g root -o root bin/system-docker-compose /usr/bin/system-docker-compose
 ```
 
 Configure the service and enable the units:
