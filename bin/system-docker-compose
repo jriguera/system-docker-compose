@@ -6,7 +6,7 @@ set -e
 
 # Main executable
 DOCKER=/usr/bin/docker
-DOCKER_RUN_OPTIONS="--no-ansi"
+DOCKER_RUN_OPTIONS=""
 DOCKER_HOST="/var/run/docker.sock"
 DOCKER_VOLUMES=""
 
