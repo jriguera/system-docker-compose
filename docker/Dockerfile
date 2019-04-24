@@ -53,7 +53,7 @@ RUN set -xe                                                                 && \
     addgroup -g "${GUID}" compose                                           && \
     adduser -h / -D -G compose -s /bin/bash -u "${UID}" compose             && \
     # Install docker bin                                                    && \
-    test "$ARCH" == "arm32v6" && echo DA="armhf" || DA="x86_64"             && \
+    test "$ARCH" == "arm32v6" && DA="armhf" || DA="x86_64"                  && \
     curl -fsSL -o /tmp/bin.tgz "${DOCKER_BASE_URL}${DA}/${DOCKER_BIN_TGZ}"  && \
     tar xvf /tmp/bin.tgz docker/docker -C /tmp --strip-components 1         && \
     mv /tmp/docker /usr/bin/docker                                          && \

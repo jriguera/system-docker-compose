@@ -5,7 +5,7 @@ Requires=network-online.target docker.service docker-compose.target
 Wants=network-online.target docker.service docker-compose.target
 After=network-online.target docker.service docker-compose.target
 ConditionFileIsExecutable=/usr/bin/docker
-ConditionFileIsExecutable=/bin/system-docker-compose
+ConditionFileIsExecutable=/usr/bin/system-docker-compose
 
 [Service]
 # The dummy program will exit

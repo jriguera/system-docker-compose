@@ -136,7 +136,7 @@ pushd docker
     $DOCKER tag $NAME $DOCKER_TAG:$VERSION
     $DOCKER push $DOCKER_TAG
 
-    $DOCKER save -o /tmp/$DOCKER_TAG-$VERSION.tgz $DOCKER_TAG:$VERSION
+    $DOCKER save -o "/tmp/$NAME-$VERSION.tgz" $DOCKER_TAG:$VERSION
 popd
 
 # Create annotated tag
@@ -163,7 +163,7 @@ releaseid=$($CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: appl
 # Upload the release
 echo "* Uploading image to Github releases section ... "
 echo -n "  URL: "
-$CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @"/tmp/$DOCKER_TAG-$VERSION.tgz" "https://uploads.github.com/repos/$GITHUB_REPO/releases/$releaseid/assets?name=$DOCKER_TAG-$VERSION.tgz" | $JQ -r '.browser_download_url'
+$CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @"/tmp/$NAME-$VERSION.tgz" "https://uploads.github.com/repos/$GITHUB_REPO/releases/$releaseid/assets?name=$NAME-$VERSION.tgz" | $JQ -r '.browser_download_url'
 
 echo
 echo "*** Description https://github.com/$GITHUB_REPO/releases/tag/v$VERSION: "
@@ -171,7 +171,7 @@ echo
 echo "$DESC"
 
 # Delete the release
-rm -f "/tmp/$DOCKER_TAG-$VERSION.tgz"
+rm -f "/tmp/$NAME-$VERSION.tgz"
 git fetch --tags
 
 exit 0
