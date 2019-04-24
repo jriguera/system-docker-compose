@@ -8,6 +8,7 @@ set -e
 DOCKER=/usr/bin/docker
 DOCKER_RUN_OPTIONS=""
 DOCKER_HOST="/var/run/docker.sock"
+ENVVARS="DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_TIMEOUT"
 DOCKER_VOLUMES=""
 
 # Disable the service
@@ -72,6 +73,12 @@ fi
 WORKDIR=/data/$(basename "${STACKDIR}")
 DOCKER_VOLUMES="${DOCKER_VOLUMES} -v ${STACKDIR}:${WORKDIR}"
 DOCKER_VOLUMES="${DOCKER_VOLUMES} -v /root:/root"
+
+# Env vars
+for var in ${ENVVARS}
+do
+    [ -z "${var}" ] || DOCKER_RUN_OPTIONS="--env ${var} ${DOCKER_RUN_OPTIONS}"
+done
 
 # Handle userns security
 [ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && DOCKER_RUN_OPTIONS="${DOCKER_RUN_OPTIONS} --userns=host"
