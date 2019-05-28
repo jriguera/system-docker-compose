@@ -1,8 +1,8 @@
 [Unit]
 Description=Docker system compose %I service
-Requires=network-online.target docker.service
-Wants=network-online.target docker.service
-After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target multi-user.target docker.service
+After=network-online.target multi-user.target docker.service
 PartOf=docker-compose.target
 ConditionPathExists=/%I
 ConditionFileIsExecutable=/usr/bin/system-docker-compose
@@ -11,6 +11,7 @@ ConditionFileIsExecutable=/usr/bin/system-docker-compose
 WorkingDirectory=/%I
 Type=oneshot
 RemainAfterExit=yes
+Restart=on-failure
 User=root
 Group=root
 Environment=ENABLED=1
