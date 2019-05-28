@@ -2,8 +2,8 @@
 Description=Docker system compose %I refresh and reload
 StopWhenUnneeded=true
 Requires=docker.service docker-compose.target
-Wants=network-online.target docker.service docker-compose.target multi-user.target
-After=network-online.target docker.service docker-compose.target multi-user.target
+Wants=network.target multi-user.target docker.service docker-compose.target cloud-init.target
+After=network.target multi-user.target docker.service docker-compose.target cloud-init.target
 PartOf=docker-compose-refresh.service
 
 [Service]

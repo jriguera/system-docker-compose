@@ -2,8 +2,8 @@
 Description=Docker system compose target services
 StopWhenUnneeded=true
 Requires=docker.service
-After=network-online.target multi-user.target docker.service 
-Wants=network-online.target multi-user.target docker.service
+After=network.target multi-user.target docker.service cloud-init.target
+Wants=network.target multi-user.target docker.service cloud-init.target
 ConditionFileIsExecutable=/usr/bin/docker
 ConditionFileIsExecutable=/usr/bin/system-docker-compose
 

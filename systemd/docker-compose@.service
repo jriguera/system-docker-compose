@@ -1,8 +1,8 @@
 [Unit]
 Description=Docker system compose %I service
 Requires=docker.service
-Wants=network-online.target multi-user.target docker.service
-After=network-online.target multi-user.target docker.service
+Wants=network.target multi-user.target docker.service cloud-init.target
+After=network.target multi-user.target docker.service cloud-init.target
 PartOf=docker-compose.target
 ConditionPathExists=/%I
 ConditionFileIsExecutable=/usr/bin/system-docker-compose

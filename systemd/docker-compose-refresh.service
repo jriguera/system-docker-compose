@@ -1,9 +1,9 @@
 [Unit]
 Description=Docker system compose refresh and reload target
 StopWhenUnneeded=true
-Requires=network-online.target docker.service docker-compose.target
-Wants=network-online.target docker.service docker-compose.target multi-user.target
-After=network-online.target docker.service docker-compose.target multi-user.target
+Requires=network.target docker.service docker-compose.target
+Wants=network.target docker.service docker-compose.target multi-user.target cloud-init.target
+After=network.target docker.service docker-compose.target multi-user.target cloud-init.target
 ConditionFileIsExecutable=/usr/bin/docker
 ConditionFileIsExecutable=/usr/bin/system-docker-compose
 
