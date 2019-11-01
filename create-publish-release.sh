@@ -147,14 +147,16 @@ git push --tags
 # Create a release in Github
 echo "* Creating a new release in Github ... "
 DESC=$(cat <<-EOF
-	# $RELEASE version $VERSION
-	$DESCRIPTION
-	
-	## Changes since last version
-	$CHANGELOG
-	
-	## Using it
-	docker run --name compose -v /var/run/docker.sock:/var/run/docker.sock -v /root:/root -v $(pwd):$(pwd) -w $(pwd) -d dockercompose up -d
+# $RELEASE version $VERSION
+$DESCRIPTION
+
+## Changes since last version
+$CHANGELOG
+
+## Using it
+
+    docker run --name compose -v /var/run/docker.sock:/var/run/docker.sock -v /root:/root -v $(pwd):$(pwd) -w $(pwd) -d dockercompose up -d
+
 EOF
 )
 
