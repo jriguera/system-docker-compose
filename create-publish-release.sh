@@ -7,7 +7,7 @@ set -e
 
 NAME="dockercompose"
 DOCKER_TAG="jriguera/$NAME"
-RELEASE="rpi-dockercompose"
+RELEASE="dockercompose"
 DESCRIPTION="Docker image to run docker-compose in a Raspberry Pi"
 GITHUB_REPO="jriguera/docker-rpi-dockercompose"
 
