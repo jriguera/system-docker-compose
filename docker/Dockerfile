@@ -37,6 +37,8 @@ RUN set -xe                                                                 && \
     apk add --no-cache \
         tzdata \
         bash \
+        openssl \
+        libffi \
         ca-certificates \
         curl \
         yaml \
