@@ -5,20 +5,60 @@
 set -e
 
 # Main executable
-DOCKER=/usr/bin/docker
-DOCKER_RUN_OPTIONS=""
-DOCKER_HOST="/var/run/docker.sock"
-ENVVARS="DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_TIMEOUT"
-DOCKER_VOLUMES=""
+DOCKER=${DOCKER:-/usr/bin/docker}
+DOCKER_HOST="${DOCKER_HOST:-/var/run/docker.sock}"
 
-# Disable the service
-ENABLED=1
-# Image to run
-IMAGE="jriguera/dockercompose"
+# Folder with the compose file and variables files
+STACKDIR="${STACKDIR:-/etc/docker-compose}"
 # Name of the docker-compose project (by default is the name of the folder)
-NAME="system"
+NAME="${NAME:-system}"
+# Disable the service
+ENABLED="${ENABLED:-1}"
+# Image to run
+IMAGE="${IMAGE:-jriguera/dockercompose}"
+# Extra docker options
+OPTIONS="${OPTIONS:-}"
+# Vars to pass to docker-compose
+ENVVARS="DOCKER_CERT_PATH DOCKER_TLS_VERIFY DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_TIMEOUT COMPOSE_PROJECT_NAME COMPOSE_FILE COMPOSE_API_VERSION"
+# Extra volumes
+VOLUMES="${VOLUMES:-"-v /root:/root"}"
+# Configuration file
+CONFIGFILE="${CONFIGFILE:-config.env}"
 
 ###
+
+HELP=0
+while getopts "hs:c:" o
+do
+    case "${o}" in
+    h)
+        HELP=1
+        echo "Usage:  $0 [-h] [-s <stackdir>] [list-docker-compose-args]"
+        echo "  Docker wrapper to docker-compose to manage 'system' stack in <stackdir> folder"
+        echo "  Default <stackdir> folder: ${STACKDIR}"
+        echo "  Settings in <stackdir> (${STACKDIR}): ${CONFIGFILE}"
+        echo "  Default docker-compose image: ${IMAGE}"
+        echo
+        echo "docker-compose usage:"
+        STACKDIR=$(pwd)
+        ;;
+    s)
+        STACKDIR=$(realpath "${OPTARG}")
+        if ! [ -d "${STACKDIR}" ]
+        then
+            echo "Error, stack folder does not exists"
+            exit 1
+        fi
+        ;;
+    s)
+        CONFIGFILE="${OPTARG}"
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+shift $((OPTIND-1))
 
 if [ $(id -u) -ne 0 ]
 then
@@ -26,35 +66,10 @@ then
    exit 1
 fi
 
-if [ "$#" -lt 1 ]
+if [ -r "${STACKDIR}/${CONFIGFILE}" ]
 then
-    echo "Error, not enough parameters"
-    exit 1
-fi
-
-if [ "${1}" == "-h" ] || [ "${1}" == "--help" ]
-then
-    echo "Usage:  $0 <stackdir> [list-docker-compose-args]"
-    echo "  Manages system docker-compose stack on <stackdir> folder"
-    echo "  Settings are defined in <stackdir>/config.env"
-    echo
-    echo "docker-compose:"
-    set -- --help "$@"
-    STACKDIR=$(pwd)
-else
-    STACKDIR=$(realpath "${1}")
-    if ! [ -d "${STACKDIR}" ]
-    then
-        echo "Error, stack folder does not exists"
-        exit 1
-    fi
-    shift
-fi
-
-if [ -r "${STACKDIR}/config.env" ]
-then
-    echo "Loading ${STACKDIR}/config.env ..."
-    source "${STACKDIR}/config.env"
+    echo "Loading ${STACKDIR}/${CONFIGFILE} ..."
+    source "${STACKDIR}/${CONFIGFILE}"
 fi
 
 if [ "${ENABLED}" != "1" ]
@@ -64,25 +79,26 @@ then
 fi
 
 if [ -S "${DOCKER_HOST}" ]; then
-    DOCKER_ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST} -e DOCKER_HOST"
+    ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST} -e DOCKER_HOST"
 else
-    DOCKER_ADDR="-e DOCKER_HOST -e DOCKER_TLS_VERIFY -e DOCKER_CERT_PATH"
+    ADDR="-e DOCKER_HOST"
 fi
 
 # Setup volume mounts for compose config and context
 WORKDIR=/data/$(basename "${STACKDIR}")
-DOCKER_VOLUMES="${DOCKER_VOLUMES} -v ${STACKDIR}:${WORKDIR}"
-DOCKER_VOLUMES="${DOCKER_VOLUMES} -v /root:/root"
+VOLUMES="${VOLUMES} -v ${STACKDIR}:${WORKDIR}"
+VOLUMES="${VOLUMES} -v /root:/root"
 
 # Env vars
 for var in ${ENVVARS}
 do
-    [ -z "${var}" ] || DOCKER_RUN_OPTIONS="--env ${var} ${DOCKER_RUN_OPTIONS}"
+    [ -z "${var}" ] || OPTIONS="--env ${var} ${OPTIONS}"
 done
 
 # Handle userns security
-[ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && DOCKER_RUN_OPTIONS="${DOCKER_RUN_OPTIONS} --userns=host"
+[ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && OPTIONS="${OPTIONS} --userns=host"
+[ "${HELP}" == "1" ] && set -- --help "$@"
 [ -n "${NAME}" ] && set -- -p "${NAME}" "$@"
 
-exec ${DOCKER} run --rm ${DOCKER_RUN_OPTIONS} ${DOCKER_ADDR} ${DOCKER_VOLUMES} -w "${WORKDIR}" $IMAGE "$@"
+exec ${DOCKER} run --rm ${OPTIONS} ${ADDR} ${VOLUMES} -w "${WORKDIR}" "${IMAGE}" "$@"
 
