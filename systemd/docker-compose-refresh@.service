@@ -12,10 +12,11 @@ Type=oneshot
 User=root
 Group=root
 Environment=ENABLED=1
+Environment=STACKDIR=/%I
 EnvironmentFile=-/%I/config.env
 ExecStartPre=/bin/sh -c "test x$ENABLED = x1 || exit 1"
-ExecStartPre=/usr/bin/system-docker-compose /%I pull
-ExecStart=/usr/bin/system-docker-compose /%I up -d --no-color
+ExecStartPre=/usr/bin/system-docker-compose pull
+ExecStart=/usr/bin/system-docker-compose up -d --no-color
 
 [Install]
 WantedBy=docker-compose-refresh.service
