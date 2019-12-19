@@ -24,6 +24,9 @@ ENVVARS="DOCKER_CERT_PATH DOCKER_TLS_VERIFY DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_T
 VOLUMES="${VOLUMES:-"-v /root:/root"}"
 # Configuration file
 CONFIGFILE="${CONFIGFILE:-config.env}"
+# Load images
+TARBALLS="${TARBALLS:-$STACKDIR/tarballs.lst}"
+
 
 ###
 
@@ -38,6 +41,7 @@ do
         echo "  Default <stackdir> folder: ${STACKDIR}"
         echo "  Settings in <stackdir> (${STACKDIR}): ${CONFIGFILE}"
         echo "  Default docker-compose image: ${IMAGE}"
+        echo "  Load local OCI tarballs list from ${TARBALLS}"
         echo
         echo "docker-compose usage:"
         STACKDIR=$(pwd)
@@ -99,6 +103,16 @@ done
 [ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && OPTIONS="${OPTIONS} --userns=host"
 [ "${HELP}" == "1" ] && set -- --help "$@"
 [ -n "${NAME}" ] && set -- -p "${NAME}" "$@"
+
+if [ -r "${TARBALLS}" ]
+then
+    echo "Loading OCI tarballs from ${TARBALLS} ..."
+    while read -r image
+    do
+        echo "Loading ${image}"
+        ${DOCKER} load -i "${image}"
+    done <<< $(grep -v '^#' "${TARBALLS}")
+fi
 
 exec ${DOCKER} run --rm ${OPTIONS} ${ADDR} ${VOLUMES} -w "${WORKDIR}" "${IMAGE}" "$@"
 
