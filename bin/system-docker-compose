@@ -2,16 +2,16 @@
 #
 # Run docker-compose in a container
 #
-set -e
+set -eo pipefail
 
 # Main executable
 DOCKER=${DOCKER:-/usr/bin/docker}
 DOCKER_HOST="${DOCKER_HOST:-/var/run/docker.sock}"
 
 # Folder with the compose file and variables files
-STACKDIR="${STACKDIR:-/etc/docker-compose}"
+COMPOSE_PROJECT_DIRECTORY="${COMPOSE_PROJECT_DIRECTORY:-/etc/docker-compose}"
 # Name of the docker-compose project (by default is the name of the folder)
-NAME="${NAME:-system}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-system}"
 # Disable the service
 ENABLED="${ENABLED:-1}"
 # Image to run
@@ -19,43 +19,42 @@ IMAGE="${IMAGE:-jriguera/dockercompose}"
 # Extra docker options
 OPTIONS="${OPTIONS:-}"
 # Vars to pass to docker-compose
-ENVVARS="DOCKER_CERT_PATH DOCKER_TLS_VERIFY DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_TIMEOUT COMPOSE_PROJECT_NAME COMPOSE_FILE COMPOSE_API_VERSION"
+ENVVARS="DOCKER_HOST DOCKER_CERT_PATH DOCKER_TLS_VERIFY DOCKER_CLIENT_TIMEOUT COMPOSE_HTTP_TIMEOUT COMPOSE_PROJECT_NAME COMPOSE_FILE COMPOSE_PROJECT_DIRECTORY COMPOSE_API_VERSION"
 # Extra volumes
-VOLUMES="${VOLUMES:-"-v /root:/root"}"
+VOLUMES="${VOLUMES:-}"
 # Configuration file
-CONFIGFILE="${CONFIGFILE:-config.env}"
+ENV="${ENV:-config.env}"
 # Load images
-TARBALLS="${TARBALLS:-$STACKDIR/tarballs.lst}"
-
+TARBALLS="${TARBALLS:-$COMPOSE_PROJECT_DIRECTORY/tarballs.lst}"
+# M/Monit (set to empty to disable)
+MONIT="${MONIT:-/usr/bin/monit}"
+MONITCFG="${MONITCFG:-/etc/monit/conf.d/docker-compose}"
 
 ###
 
-HELP=0
-while getopts "hs:c:" o
+while getopts "hd:c:" o
 do
     case "${o}" in
     h)
-        HELP=1
-        echo "Usage:  $0 [-h] [-s <stackdir>] [list-docker-compose-args]"
-        echo "  Docker wrapper to docker-compose to manage 'system' stack in <stackdir> folder"
-        echo "  Default <stackdir> folder: ${STACKDIR}"
-        echo "  Settings in <stackdir> (${STACKDIR}): ${CONFIGFILE}"
+        echo "Usage:  $0 [-h] [-d <stackdir>]  [-c <env-settings-file>] [ start | stop | reload | status | top | run <docker-compose-arguments>]"
+        echo "  Docker-compose wrapper to manage 'system' docker-compose stack in <stackdir> folder"
+        echo "  Default <stackdir> folder: ${COMPOSE_PROJECT_DIRECTORY}"
+        echo "  Settings in <stackdir> (${COMPOSE_PROJECT_DIRECTORY}): ${ENV}"
         echo "  Default docker-compose image: ${IMAGE}"
         echo "  Load local OCI tarballs list from ${TARBALLS}"
         echo
-        echo "docker-compose usage:"
-        STACKDIR=$(pwd)
+        exit 0
         ;;
-    s)
-        STACKDIR=$(realpath "${OPTARG}")
-        if ! [ -d "${STACKDIR}" ]
+    d)
+        COMPOSE_PROJECT_DIRECTORY=$(realpath "${OPTARG}")
+        if ! [ -d "${COMPOSE_PROJECT_DIRECTORY}" ]
         then
-            echo "Error, stack folder does not exists"
+            echo "Error, stack folder does not exist"
             exit 1
         fi
         ;;
-    s)
-        CONFIGFILE="${OPTARG}"
+    c)
+        ENV="${OPTARG}"
         ;;
     *)
         break
@@ -64,55 +63,99 @@ do
 done
 shift $((OPTIND-1))
 
-if [ $(id -u) -ne 0 ]
+if [ -r "${COMPOSE_PROJECT_DIRECTORY}/${ENV}" ]
 then
-   echo "Error, please run as root!"
-   exit 1
-fi
-
-if [ -r "${STACKDIR}/${CONFIGFILE}" ]
-then
-    echo "Loading ${STACKDIR}/${CONFIGFILE} ..."
-    source "${STACKDIR}/${CONFIGFILE}"
+    echo "Loading ${COMPOSE_PROJECT_DIRECTORY}/${ENV} ..."
+    source "${COMPOSE_PROJECT_DIRECTORY}/${ENV}"
 fi
 
 if [ "${ENABLED}" != "1" ]
 then
-    echo "Exit 0, not enabled. See ${STACKDIR}/config.env"
+    echo "Exit 0, not enabled. See ${COMPOSE_PROJECT_DIRECTORY}/${ENV}"
     exit 0
 fi
 
-if [ -S "${DOCKER_HOST}" ]; then
-    ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST} -e DOCKER_HOST"
-else
-    ADDR="-e DOCKER_HOST"
-fi
+[ -S "${DOCKER_HOST}" ] && ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST}" || ADDR=""
 
 # Setup volume mounts for compose config and context
-WORKDIR=/data/$(basename "${STACKDIR}")
-VOLUMES="${VOLUMES} -v ${STACKDIR}:${WORKDIR}"
-VOLUMES="${VOLUMES} -v /root:/root"
+WORKDIR=/data/$(basename "${COMPOSE_PROJECT_DIRECTORY}")
+VOLUMES="${VOLUMES} -v ${COMPOSE_PROJECT_DIRECTORY}:${WORKDIR}"
+COMPOSE_PROJECT_DIRECTORY=${WORKDIR}
 
 # Env vars
 for var in ${ENVVARS}
 do
-    [ -z "${var}" ] || OPTIONS="--env ${var} ${OPTIONS}"
+    [ -z "${!var}" ] || OPTIONS="--env ${var}=${!var} ${OPTIONS}"
 done
 
 # Handle userns security
 [ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && OPTIONS="${OPTIONS} --userns=host"
-[ "${HELP}" == "1" ] && set -- --help "$@"
-[ -n "${NAME}" ] && set -- -p "${NAME}" "$@"
 
-if [ -r "${TARBALLS}" ]
-then
-    echo "Loading OCI tarballs from ${TARBALLS} ..."
-    while read -r image
-    do
-        echo "Loading ${image}"
-        ${DOCKER} load -i "${image}"
-    done <<< $(grep -v '^#' "${TARBALLS}")
-fi
+# command line
+CMD="${DOCKER} run --rm ${OPTIONS} ${ADDR} ${VOLUMES} -w ${WORKDIR} ${IMAGE}"
+RC=0
+case "${1}" in
+    start|reload)
+        # Load OCI images
+        if [ -r "${TARBALLS}" ]
+        then
+            echo "Loading OCI tarballs from ${TARBALLS} ..."
+            while read -r image
+            do
+                echo "Loading ${image}"
+                ${DOCKER} load --input "${image}"
+            done <<< $(grep -v '^#' "${TARBALLS}")
+        fi
+        # Manage monit
+        if [ -x "${MONIT}" ] && [ -n "${MONITCFG}" ]
+        then
+            echo "Generating monit configuration ${MONITCFG} ... "
+            # TODO
+            if SERVICES=$(${CMD} run config --services 2>/dev/null)
+            then
+                echo "# Autogenerated file by $0 at $(date)" > "${MONITCFG}"
+                for service in ${SERVICES}
+                do
+                    cat <<-EOF >> "${MONITCFG}"
+					check program docker.${service} with path "${DOCKER} top ${service}"
+					if status != 0 for 3 cycles then alert
+					if status != 0 for 6 cycles then exec "${0} reload"
+					depends on dockerd
+					group system
+					group docker
+					group docker-compose
+					EOF
+                done
+            else
+                echo "Error getting list of docker-compose services: ${CMD} run config --services"
+                exit 1
+            fi
+        fi
+        echo "Starting/Reloading docker-compose ..."
+        ${CMD} ${action}
+        RC=$?
+        if [ ${RC} -eq 0] && [ -r "${MONITCFG}" ]
+        then
+            sleep 10
+            ${MONIT} reload
+        fi
+    ;;
+    stop)
+        if [ -r "${MONITCFG}" ]
+        then
+            rm -f  "${MONITCFG}"
+            ${MONIT} reload
+            sleep 5
+        fi
+        echo "Stopping docker-compose ..."
+        ${CMD} stop
+        RC=$?
+    ;;
+    *)
+        ${CMD} "$@"
+        RC=$?
+    ;;
+esac
+exit ${RC}
 
-exec ${DOCKER} run --rm ${OPTIONS} ${ADDR} ${VOLUMES} -w "${WORKDIR}" "${IMAGE}" "$@"
 

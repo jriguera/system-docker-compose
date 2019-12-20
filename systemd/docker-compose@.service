@@ -19,11 +19,9 @@ Environment=COMPOSE_HTTP_TIMEOUT=300
 Environment=STACKDIR=/%I
 EnvironmentFile=-/%I/config.env
 ExecStartPre=/bin/sh -c "test x$ENABLED = x1 || exit 1"
-ExecStartPre=/usr/bin/system-docker-compose rm -fv
-ExecStart=/usr/bin/system-docker-compose up -d --no-color
-ExecStop=/usr/bin/system-docker-compose down
-ExecReload=/usr/bin/system-docker-compose pull
-ExecReload=/usr/bin/system-docker-compose up -d --no-color
+ExecStart=/usr/bin/system-docker-compose start
+ExecStop=/usr/bin/system-docker-compose stop
+ExecReload=/usr/bin/system-docker-compose reload
 
 [Install]
 WantedBy=docker-compose.target
