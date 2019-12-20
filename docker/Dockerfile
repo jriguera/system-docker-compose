@@ -4,11 +4,11 @@
 # docker run --name compose -v /var/run/docker.sock:/var/run/docker.sock -v /root:/root -v $(pwd):$(pwd) -w $(pwd) -d dockercompose up -d
 
 ARG ARCH=arm32v6
-FROM "${ARCH}/python:3.8-alpine3.10"
+FROM "${ARCH}/python:3.9-alpine3.11"
 
-ARG VERSION=1.24.1
+ARG VERSION=1.25
 ARG DOCKER_BASE_URL="https://download.docker.com/linux/static/stable/"
-ARG DOCKER_BIN_TGZ="docker-19.03.4.tgz"
+ARG DOCKER_BIN_TGZ="docker-19.03.5.tgz"
 ARG MYVERSION=jose0
 ARG UID=1000
 ARG GUID=1000
@@ -43,6 +43,7 @@ RUN set -xe                                                                 && \
         curl \
         yaml \
         glib \
+        jq \
                                                                             && \
     # Timezone
     cp "/usr/share/zoneinfo/${TZ}" /etc/localtime                           && \
