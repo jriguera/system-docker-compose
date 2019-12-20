@@ -75,7 +75,12 @@ then
     exit 0
 fi
 
-[ -S "${DOCKER_HOST}" ] && ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST}" || ADDR=""
+ADDR=""
+if [ -S "${DOCKER_HOST}" ]
+then
+    ADDR="-v ${DOCKER_HOST}:${DOCKER_HOST}"
+    unset DOCKER_HOST
+fi
 
 # Setup volume mounts for compose config and context
 WORKDIR=/data/$(basename "${COMPOSE_PROJECT_DIRECTORY}")
