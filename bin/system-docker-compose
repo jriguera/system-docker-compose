@@ -65,7 +65,6 @@ shift $((OPTIND-1))
 
 if [ -r "${COMPOSE_PROJECT_DIRECTORY}/${ENV}" ]
 then
-    echo "Loading ${COMPOSE_PROJECT_DIRECTORY}/${ENV} ..."
     source "${COMPOSE_PROJECT_DIRECTORY}/${ENV}"
 fi
 
@@ -137,9 +136,9 @@ case "${1}" in
             fi
         fi
         echo "Starting/Reloading docker-compose ..."
-        ${CMD} ${action}
+        ${CMD} ${1}
         RC=$?
-        if [ ${RC} -eq 0] && [ -r "${MONITCFG}" ]
+        if [ ${RC} -eq 0 ] && [ -r "${MONITCFG}" ]
         then
             sleep 10
             ${MONIT} reload
