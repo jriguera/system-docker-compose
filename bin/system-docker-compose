@@ -123,7 +123,7 @@ case "${1}" in
                     cat <<-EOF >> "${MONITCFG}"
 					check program docker.${service} with path "${DOCKER} top ${service}"
 					if status != 0 for 3 cycles then alert
-					if status != 0 for 6 cycles then exec "${0} reload"
+					if status != 0 for 6 cycles then exec "$(realpath ${0}) reload"
 					depends on dockerd
 					group system
 					group docker
