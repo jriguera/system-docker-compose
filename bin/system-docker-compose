@@ -143,6 +143,8 @@ case "${1}" in
         then
             sleep 10
             ${MONIT} reload
+        else
+            rm -f "${MONITCFG}"
         fi
     ;;
     stop)
