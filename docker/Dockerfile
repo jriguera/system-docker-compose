@@ -4,9 +4,9 @@
 # docker run --name compose -v /var/run/docker.sock:/var/run/docker.sock -v /root:/root -v $(pwd):$(pwd) -w $(pwd) -d dockercompose up -d
 
 ARG ARCH=arm32v6
-FROM "${ARCH}/python:3.8-alpine3.10"
+FROM "${ARCH}/python:3.8-alpine3.11"
 
-ARG VERSION=1.25
+ARG VERSION=1.25.1
 ARG DOCKER_BASE_URL="https://download.docker.com/linux/static/stable/"
 ARG DOCKER_BIN_TGZ="docker-19.03.5.tgz"
 ARG MYVERSION=jose1
