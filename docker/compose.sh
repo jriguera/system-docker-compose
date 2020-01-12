@@ -30,7 +30,7 @@ case "${1}" in
         docker-compose "$@"
         ;;
     help|*)
-        echo "Usage:  $0 [ start | reload | stop | status | run <list-docker-compose-options> ]"
+        echo "Usage: [ start | reload | stop | status | run <list-docker-compose-options> ]"
         echo "  docker-compose wrapper to manage 'system' stack in <stackdir> folder"
         echo "  Default <stackdir> folder: ${COMPOSE_PROJECT_DIRECTORY}"
         echo "  Settings in <stackdir> (${COMPOSE_PROJECT_DIRECTORY}): ${COMPOSE_FILE}"
