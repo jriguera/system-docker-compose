@@ -39,7 +39,11 @@ MONITCFG="${MONITCFG:-/etc/monit/conf.d/docker-compose}"
 singleton() {
     local lock="/var/run/$(basename ${BASH_SOURCE[0]})_${COMPOSE_PROJECT_NAME}"
 
-    exec 222<>"${lock}"
+    if ! exec 222<>"${lock}"
+    then
+        echo "Error, cannot create/read lock file: ${lock}"
+        return 1
+    fi
     if ! flock -n -x 222
     then
         echo "It seems there is a lock file '${lock}', another process running with pid=$(cut -d' ' -f1 ${lock})"
@@ -249,10 +253,23 @@ do
 done
 
 # Handle userns security
-[ ! -z "$(${DOCKER} info 2>/dev/null | grep userns)" ] && OPTIONS="${OPTIONS} --userns=host"
+if ${DOCKER} info --format '{{json .SecurityOptions}}' 2>/dev/null | grep -q 'name=userns'
+then
+    OPTIONS="${OPTIONS} --userns=host"
+fi
+
+# Only allocate tty if we detect one
+if [ -t 0 ] && [ -t 1 ]
+then
+    OPTIONS="${OPTIONS} -t"
+fi
+
+# Always set -i to support piped and terminal input in run/exec
+OPTIONS="${OPTIONS} -i"
 
 # command line
 CMD="${DOCKER} run --rm ${OPTIONS} ${ADDR} ${VOLUMES} -w ${WORKDIR} ${IMAGE}"
+echo $CMD
 RC=0
 case "${1}" in
     start)
@@ -291,17 +308,16 @@ case "${1}" in
         [ ${RC} -eq 255 ] && RC=0
     ;;
     run)
-        shift
         singleton ${@}
         RC=$?
         [ ${RC} -eq 0 ] && {
-            ${CMD} "$@"
+            ${CMD} $@
         }
         # ignore
         [ ${RC} -eq 255 ] && RC=0
     ;;
     *)
-        ${CMD} "$@"
+        ${CMD} $@
         RC=$?
     ;;
 esac
