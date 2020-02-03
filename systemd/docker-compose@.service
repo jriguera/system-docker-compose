@@ -1,9 +1,12 @@
 [Unit]
 Description=Docker system compose %I service
-Requires=docker.service
-Wants=network.target multi-user.target docker.service cloud-init.target
-After=network.target multi-user.target docker.service cloud-init.target
+StopWhenUnneeded=true
 PartOf=docker-compose.target
+RequiresMountsFor=/data
+Requires=docker.service
+Wants=network-online.target docker.service monit.service
+After=network-online.target docker.service monit.service
+Before=rc-local.service
 ConditionPathExists=/%I
 ConditionPathExists=!/%I/docker-compose-disabled
 ConditionFileIsExecutable=/usr/bin/system-docker-compose
@@ -25,6 +28,6 @@ ExecStop=/usr/bin/system-docker-compose stop
 ExecReload=/usr/bin/system-docker-compose reload
 
 [Install]
-WantedBy=docker-compose.target
+WantedBy=docker-compose.target multi-user.target
 Also=docker-compose-refresh.timer
 

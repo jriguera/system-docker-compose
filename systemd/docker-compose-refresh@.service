@@ -1,10 +1,11 @@
 [Unit]
 Description=Docker system compose %I refresh and reload
 StopWhenUnneeded=true
-Requires=docker.service docker-compose.target
-Wants=network.target multi-user.target docker.service docker-compose.target cloud-init.target
-After=network.target multi-user.target docker.service docker-compose.target cloud-init.target
 PartOf=docker-compose-refresh.service
+RequiresMountsFor=/data
+Requires=network-online.target docker.service docker-compose.target
+Wants=network-online.target docker.service docker-compose.target
+After=network-online.target docker.service docker-compose.target
 ConditionPathExists=/%I
 ConditionPathExists=!/%I/docker-compose-disabled
 ConditionFileIsExecutable=/usr/bin/system-docker-compose
@@ -21,6 +22,6 @@ ExecStartPre=/bin/sh -c "test x$ENABLED = x1 || exit 1"
 ExecStart=/usr/bin/system-docker-compose reload
 
 [Install]
-WantedBy=docker-compose-refresh.service
+WantedBy=docker-compose-refresh.service docker-compose.target
 Also=docker-compose-refresh.timer
 
