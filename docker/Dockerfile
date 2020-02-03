@@ -6,10 +6,10 @@
 ARG ARCH=arm32v6
 FROM "${ARCH}/python:3.8-alpine3.11"
 
-ARG VERSION=1.25.1
+ARG VERSION=1.25.4
 ARG DOCKER_BASE_URL="https://download.docker.com/linux/static/stable/"
 ARG DOCKER_BIN_TGZ="docker-19.03.5.tgz"
-ARG MYVERSION=jose2
+ARG MYVERSION=jose1
 ARG UID=1000
 ARG GUID=1000
 ARG TZ=Europe/Amsterdam
@@ -29,7 +29,7 @@ LABEL architecture="${ARCH}"
 ENV LANG=en_US.utf8
 ENV LC_ALL=C.UTF-8
 ENV ARCH="${ARCH}"
-ENV CROSS_COMPILE=/usr/bin/
+ENV ENTRYPOINT="/docker-entrypoint-initdb.d"
 
 RUN set -xe                                                                 && \
     apk -U upgrade                                                          && \
@@ -76,7 +76,7 @@ RUN set -xe                                                                 && \
     ln -s /usr/local/bin/compose.sh /usr/local/bin/docker-entrypoint.sh     && \
     ln -s /usr/local/bin/compose.sh /docker-entrypoint.sh                   && \
     ln -s /usr/local/bin/compose.sh /run.sh                                 && \
-    mkdir -p /docker-entrypoint-initdb.d
+    mkdir -p $ENTRYPOINT
 
 ENTRYPOINT ["/run.sh"]
 
