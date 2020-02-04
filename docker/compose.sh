@@ -72,7 +72,7 @@ manage_monit() {
 				check program docker.${key} with path "${DOCKER} top ${container}"
 				if status != 0 for 3 cycles then alert
 				if status != 0 for 6 cycles then exec "${PROGRAM} reload"
-				depends on dockerd
+				depends on docker
 				group system
 				group docker
 				group ${MONITGROUP}
