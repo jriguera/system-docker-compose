@@ -69,7 +69,7 @@ manage_monit() {
                 key="${service%:*}"
                 container="${service#*:}"
                 cat >> "${monitcfg}" <<-EOF
-				check program docker.${key} with path "${DOCKER} top ${container}"
+				check program docker.${key} with path "/bin/bash -eo pipefail -c '${DOCKER} top ${container} | tail -n +2'"
 				if status != 0 for 3 cycles then alert
 				if status != 0 for 6 cycles then exec "${PROGRAM} reload"
 				depends on docker
