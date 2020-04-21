@@ -34,7 +34,7 @@ as docker-compose original program plus a first argument which is the configurat
 folder (i.e. where the `docker-compose.yml` is):
 
 ```
-system-docker-compose /etc/docker-compose up -d
+system-docker-compose start
 ```
 
 Example files in `/etc/docker-compose`:
