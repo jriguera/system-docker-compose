@@ -43,6 +43,7 @@ RUN set -xe                                                                 && \
     # clean up
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/* ~/.cache
 
+SHELL ["/bin/bash", "-c"]
 COPY requirements.txt requirements.txt
 RUN set -xe                                                                 && \
     addgroup -g "${GUID}" compose                                           && \
