@@ -3,8 +3,6 @@ name: Docker build, release and push to DockerHub
 
 on:
   push:
-    tags:
-    - '*'
     paths:
     - 'docker/**'
 
