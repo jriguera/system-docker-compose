@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
+BUILD := $(shell git rev-parse --short HEAD)
+
+
+%:
+	dh $@
+
+.PHONY: override_dh_auto_configure \
+	override_dh_auto_install \
+	override_dh_installsystemd
+
+override_dh_auto_install:
+	@install -m 644 -g root -o root -D systemd/docker-compose.target debian/system-docker-compose/lib/systemd/system/docker-compose.target
+	@install -m 644 -g root -o root -D systemd/docker-compose@.service debian/system-docker-compose/lib/systemd/system/docker-compose@.service
+	@install -m 644 -g root -o root -D systemd/docker-compose-refresh@.service debian/system-docker-compose/lib/systemd/system/docker-compose-refresh@.service
+	@install -m 644 -g root -o root -D systemd/docker-compose-refresh.service debian/system-docker-compose/lib/systemd/system/docker-compose-refresh.service
+	@install -m 644 -g root -o root -D systemd/docker-compose-refresh.timer debian/system-docker-compose/lib/systemd/system/docker-compose-refresh.timer
+	@install -m 755 -g root -o root -d debian/system-docker-compose/etc/docker-compose
+	@install -m 644 -g root -o root -D example/* debian/system-docker-compose/etc/docker-compose/
+
+override_dh_installsystemd:
+	dh_installsystemd --name=docker-compose
+

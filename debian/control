@@ -1,0 +1,21 @@
+Source: system-docker-compose
+Section: misc
+Priority: optional
+Standards-Version: 4.1.3
+Build-Depends: debhelper (>= 12)
+Homepage: https://github.com/jriguera/docker-dockercompose
+Maintainer: Jose Riguera <jriguera@gmail.com>
+Vcs-Browser: https://github.com/jriguera/docker-dockercompose
+Vcs-Git: https://github.com/jriguera/docker-dockercompose
+
+Package: system-docker-compose
+Architecture: all
+Section: misc
+Priority: optional
+Depends: ${misc:Depends}
+Provides: system-docker-compose
+Description: Run docker-compose at boot as part of systemd units
+ Set the docker-compose file in /etc/docker-compose and it will be run
+ as a systemd daemon. Containers will be automatically updated via the
+ homonym systemd timer.
+
