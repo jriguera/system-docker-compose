@@ -1,4 +1,4 @@
-# When a commit is pushed with text matching v*, i.e. v1.0, v20.15.10, creates a new release
+# When an annotation commit is pushed, it publish the docker image to dockerhub
 name: Docker build, release and push to DockerHub
 
 on:
@@ -12,10 +12,10 @@ env:
   DOCKER_IMAGE_REPO: jriguera
   DOCKER_IMAGE_NAME: dockercompose
   DOCKER_BUILD_DIR: docker
-  DOCKER_BUILD_PLATFORMS: amd64,arm64,arm
+  DOCKER_BUILD_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
 
 jobs:
-  build:
+  build-docker:
     name: Docker Build
     runs-on: ubuntu-latest
     outputs:
@@ -33,20 +33,22 @@ jobs:
             VERSION="${MAINVERSION}-${MYVERSION}"
             TAG="${DOCKER_IMAGE_REPO}/${DOCKER_IMAGE_NAME}"
             TAGS="${TAG}:${VERSION}"
-            [[ ${GITHUB_REF} == refs/tags/* ]] && TAGS="${TAGS},${TAG}:latest"
+            GHTAGS="ghcr.io/${TAG}:${VERSION}"
+            [[ ${GITHUB_REF} == refs/tags/* ]] && TAGS="${TAGS},${TAG}:latest" && GHTAGS="${GHTAGS},ghcr.io/${TAG}:latest"
             echo ::set-output name=name::$(echo ${DOCKER_IMAGE_NAME})
             echo ::set-output name=builddir::$(echo ${DOCKER_BUILD_DIR})
             echo ::set-output name=version::$(echo ${VERSION})
             echo ::set-output name=tag::$(echo ${TAG})
             echo ::set-output name=tags::$(echo ${TAGS})
+            echo ::set-output name=ghtags::$(echo ${GHTAGS})
             echo ::set-output name=platforms::$(echo ${DOCKER_BUILD_PLATFORMS})
             echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: ${{steps.docker.outputs.platforms}}
+#      - name: Set up QEMU
+#        id: qemu
+#        uses: docker/setup-qemu-action@v1
+#        with:
+#          platforms: ${{steps.docker.outputs.platforms}}
 
       - name: Set up Docker Buildx
         id: buildx
@@ -56,11 +58,18 @@ jobs:
           # sets docker build command as an alias to docker buildx
           install: false
 
-      - name: Show QEMU and Docker buildx available platforms
+      - name: Show Docker buildx available platforms
+        # echo "QEMU platforms: ${{steps.qemu.outputs.platforms}}"
         run: |
-          echo "QEMU platforms: ${{steps.qemu.outputs.platforms}}"
           echo "Docker buildx platforms: ${{steps.buildx.outputs.platforms}}"
           echo "Docker builder instance name: ${{steps.buildx.outputs.name}}"
+
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKER_GITHUB_REGISTRY_PAC }
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
@@ -68,12 +77,25 @@ jobs:
           username: ${{secrets.DOCKERHUB_USERNAME}}
           password: ${{secrets.DOCKERHUB_PASSWORD}}
 
-      - name: Docker Build and push
+      - name: Docker Build and push to GitHub Registry
         uses: docker/build-push-action@v2
         with:
           context: ${{steps.docker.outputs.builddir}}
           file: ${{steps.docker.outputs.builddir}}/Dockerfile
-          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          platforms: ${{ steps.docker.outputs.platforms }}
+          tags: ${{steps.docker.outputs.ghtags}}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.docker.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+
+      - name: Docker Build and push to DockerHub
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{steps.docker.outputs.builddir}}
+          file: ${{steps.docker.outputs.builddir}}/Dockerfile
+          platforms: ${{ steps.docker.outputs.platforms }}
           push: ${{startsWith(github.ref, 'refs/tags/')}}
           tags: ${{steps.docker.outputs.tags}}
           labels: |
@@ -82,45 +104,4 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-#  release:
-#    name: Create Release
-#    runs-on: ubuntu-latest
-#    needs: build
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0
-
-#      - name: Set release variables
-#        id: release
-#        run: |
-#            tag=$(git describe --abbrev=0 --tags)
-#            prevtag=$(git describe --abbrev=0 --tags "${tag}^")
-#            changes=$(git log --pretty="%h %aI %s (%an)" "${prevtag}..${tag}" | sed 's/^/- /')
-#            cat <<EOF > description.md
-#            # $RELEASE version ${{needs.build.outputs.version}} (build tag: ${tag})
-#            
-#            $TITLE
-#            
-#            ## Changes since last version
-#            
-#            $changes
-#            
-#            EOF
-#            echo ::set-output name=description::$(cat description.md)
-#            echo ::set-output name=release::$(echo ${RELEASE})
-#            echo ::set-output name=name::$(echo ${TITLE} version ${{needs.build.outputs.version}})
-#            echo ::set-output name=tag::$(echo ${tag})
-# 
-#      - name: Create Release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{steps.release.outputs.tag}}
-#          release_name: ${{steps.release.outputs.name}}
-#          body_path: description.md
-#          draft: false
-#          prerelease: false
 
