@@ -1,0 +1,25 @@
+# When an annotation commit is pushed, it publish the package to github artifacts
+name: Debian build and release
+
+on:
+  push:
+    - 'debian/**'
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - uses: singingwolfboy/build-dpkg-buster@v1
+        id: buildpackage
+        with:
+          args: --unsigned-source --unsigned-changes -rfakeroot --build=all
+
+      - uses: actions/upload-artifact@v2
+        if: ${{startsWith(github.ref, 'refs/tags/')}}
+        with:
+          if-no-files-found: error 
+          name: ${{ steps.buildpackage.outputs.filename }}
+          path: ${{ steps.buildpackage.outputs.filename }}
