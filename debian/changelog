@@ -1,4 +1,7 @@
-system-docker-compose (1.27.4-jose1) unstable; urgency=low
+system-docker-compose (1.27.4-jose2) unstable; urgency=low
+  * fix yq version
+  * add script to generate debian changelogs
+  * fix changelog
   * fix sudo
   * bump myversion
   * new debian package version
