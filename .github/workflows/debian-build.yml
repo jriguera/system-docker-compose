@@ -23,7 +23,7 @@ jobs:
         run: |
             # Install dependencies
             sudo apt-get update
-            sudo apt-get install --yes  build-essential debhelper devscripts
+            sudo apt-get install --yes  build-essential debhelper devscripts equivs
             # Set the install command to be used by mk-build-deps (use --yes for non-interactive)
             APT_GET="sudo apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes"
             # Install build dependencies automatically
