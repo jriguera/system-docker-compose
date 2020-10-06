@@ -1,23 +1,7 @@
 system-docker-compose (1.27.4-jose2) unstable; urgency=low
-  * fix yq version
-  * add script to generate debian changelogs
-  * fix changelog
-  * fix sudo
-  * bump myversion
-  * new debian package version
-  * fix workflows
-  * fix docker build multi-arch
-  * update yq
-  * Delete unneeded code
-  * fix workflows
-  * fix workflows
   * Add debian package resources
   * Improve docker build action
   * Debian build action
-  * use bash in dockerfile as shell for run
-  * test minor version action
-  * run action when docker changes
-  * bump minor version
   * update build/release scripts for multiarch
   * add github action for fuild docker
   * switch to docker multi-arch images
