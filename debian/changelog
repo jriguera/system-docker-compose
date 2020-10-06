@@ -2,9 +2,9 @@ system-docker-compose (1.27.4-jose2) unstable; urgency=low
   * Add debian package resources
   * Improve docker build action
   * Debian build action
-  * update build/release scripts for multiarch
-  * add github action for fuild docker
-  * switch to docker multi-arch images
+  * Update build/release scripts for multiarch
+  * Add github action for fuild docker
+  * Switch to docker multi-arch images
 
  -- Jose Riguera <jriguera@gmail.com>  Sun, 5 Jul 2020 14:09:07 +0200
 
