@@ -22,12 +22,12 @@ jobs:
         id: buildpackage
         run: |
             # Install dependencies
-            apt-get update
-            apt-get install --yes  build-essential debhelper devscripts
+            sudo apt-get update
+            sudo apt-get install --yes  build-essential debhelper devscripts
             # Set the install command to be used by mk-build-deps (use --yes for non-interactive)
-            APT_GET="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes"
+            APT_GET="sudo apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes"
             # Install build dependencies automatically
-            mk-build-deps --install --tool="${APT_GET}" debian/control
+            sudo mk-build-deps --install --tool="${APT_GET}" debian/control
             PACKAGE=$(awk '/Package:/{ print $2 }' debian/control)
             # Build the package
             dpkg-buildpackage ${DPKG_BUILDPACKAGE_ARGS}
