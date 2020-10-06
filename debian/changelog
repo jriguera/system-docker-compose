@@ -1,4 +1,7 @@
 system-docker-compose (1.27.4-jose1) unstable; urgency=low
+  * fix sudo
+  * bump myversion
+  * new debian package version
   * fix workflows
   * fix docker build multi-arch
   * update yq
@@ -17,9 +20,6 @@ system-docker-compose (1.27.4-jose1) unstable; urgency=low
   * switch to docker multi-arch images
 
  -- Jose Riguera <jriguera@gmail.com>  Sun, 5 Jul 2020 14:09:07 +0200
-
-
- -- José Riguera Lopez <jriguera@gmail.com>  Tue, 21 Apr 2020 12:28:31 +0200
 
 system-docker-compose (0.1) unstable; urgency=low
   * Initial version
