@@ -17,7 +17,7 @@ env:
 jobs:
   build-docker:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       version: ${{ steps.docker.outputs.version }}
       name: ${{ steps.docker.outputs.tag }}
@@ -35,13 +35,13 @@ jobs:
             TAGS="${TAG}:${VERSION}"
             GHTAGS="ghcr.io/${TAG}:${VERSION}"
             [[ ${GITHUB_REF} == refs/tags/* ]] && TAGS="${TAGS},${TAG}:latest" && GHTAGS="${GHTAGS},ghcr.io/${TAG}:latest"
-            echo ::set-output name=name::$(echo ${DOCKER_IMAGE_NAME})
-            echo ::set-output name=builddir::$(echo ${DOCKER_BUILD_DIR})
-            echo ::set-output name=version::$(echo ${VERSION})
-            echo ::set-output name=tag::$(echo ${TAG})
-            echo ::set-output name=tags::$(echo ${TAGS})
-            echo ::set-output name=ghtags::$(echo ${GHTAGS})
-            echo ::set-output name=platforms::$(echo ${DOCKER_BUILD_PLATFORMS})
+            echo ::set-output name=name::${DOCKER_IMAGE_NAME}
+            echo ::set-output name=builddir::${DOCKER_BUILD_DIR}
+            echo ::set-output name=version::${VERSION}
+            echo ::set-output name=tag::${TAG}
+            echo ::set-output name=tags::${TAGS}
+            echo ::set-output name=ghtags::${GHTAGS}
+            echo ::set-output name=platforms::${DOCKER_BUILD_PLATFORMS}
             echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
       - name: Set up QEMU

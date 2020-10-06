@@ -6,19 +6,36 @@ on:
     paths:
     - 'debian/**'
 
+env:
+  DPKG_BUILDPACKAGE_DST: "build"
+  DPKG_BUILDPACKAGE_ARGS: "--unsigned-source --unsigned-changes -rfakeroot --build=all"
+
 jobs:
   build-deb:
     name: Create Debian package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Build package
-        uses: singingwolfboy/build-dpkg-buster@v1
         id: buildpackage
-        with:
-          args: --unsigned-source --unsigned-changes -rfakeroot --build=all
+        run: |
+            # Install dependencies
+            apt-get update
+            apt-get install --yes  build-essential debhelper devscripts
+            # Set the install command to be used by mk-build-deps (use --yes for non-interactive)
+            APT_GET="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes"
+            # Install build dependencies automatically
+            mk-build-deps --install --tool="${APT_GET}" debian/control
+            PACKAGE=$(awk '/Package:/{ print $2 }' debian/control)
+            # Build the package
+            dpkg-buildpackage ${DPKG_BUILDPACKAGE_ARGS}
+            mkdir -p ${DPKG_BUILDPACKAGE_DST}
+            find .. -maxdepth 1 -iname "${PACKAGE}*" -exec mv -v {} "${DPKG_BUILDPACKAGE_DST}/" \;
+            echo ::set-output name=filename::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.deb")
+            echo ::set-output name=buildinfo::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.buildinfo")
+            echo ::set-output name=changes::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.changes")
 
       - name: Save artifact
         uses: actions/upload-artifact@v2
