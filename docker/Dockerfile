@@ -8,7 +8,7 @@ FROM "python:3.8-alpine3.12"
 ARG VERSION=1.27.4
 ARG DOCKER_BASE_URL="https://download.docker.com/linux/static/stable/"
 ARG DOCKER_BIN_TGZ="docker-19.03.9.tgz"
-ARG MYVERSION=jose1
+ARG MYVERSION=jose2
 ARG UID=1000
 ARG GUID=1000
 ARG TZ=Europe/Amsterdam
