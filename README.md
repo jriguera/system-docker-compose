@@ -1,4 +1,4 @@
-# docker-rpi-dockercompose
+# system-docker-compose
 
 Docker image to run docker-Compose in a Linux and/or Raspberry Pi. The idea is
 define a system docker-compose service which spins up docker stacks when the
@@ -23,7 +23,13 @@ docker build . -t dockercompose
 
 ### Create final release and publish to Docker Hub
 
+This repository uses GitHub Actions to build the docker image and debian package.
+To release a new version and push the image to DockerHub, please use an annotated tag: `git tag -a v3.13 -m "new release"`
+and push with `git push --tags`, the github actions will do the rest:
+create a debian package, push the docker image to DockerHub and create a release.
+
 ```
+# Old script
 create-release.sh
 ```
 
@@ -96,7 +102,7 @@ PASSWORD=hola
 
 ## Enable systemd
 
-Install the units:
+Install the units, be aware those units need a `/data` mountpoint!
 
 ```
 # docker-compose services

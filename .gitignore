@@ -1,0 +1,8 @@
+debian/.changelog.swp
+debian/.debhelper/**
+debian/debhelper-build-stamp
+debian/files
+debian/*.log
+debian/system-docker-compose.postrm.debhelper
+debian/system-docker-compose.substvars
+debian/system-docker-compose/**

@@ -5,11 +5,11 @@ set -e
 
 ##
 
-NAME="dockercompose"
+NAME="system-docker-compose"
 DOCKER_TAG="jriguera/$NAME"
-RELEASE="dockercompose"
+RELEASE="system-docker-compose"
 DESCRIPTION="Docker image to run docker-compose as a systemd service"
-GITHUB_REPO="jriguera/docker-rpi-dockercompose"
+GITHUB_REPO="jriguera/system-docker-compose"
 
 ###
 
