@@ -33,7 +33,10 @@ jobs:
             dpkg-buildpackage ${DPKG_BUILDPACKAGE_ARGS}
             mkdir -p ${DPKG_BUILDPACKAGE_DST}
             find .. -maxdepth 1 -iname "${PACKAGE}*" -exec mv -v {} "${DPKG_BUILDPACKAGE_DST}/" \;
-            echo ::set-output name=filename::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.deb")
+            ARTIFACT=$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.deb")
+            FILENAME=$(basename ${ARTIFACT})
+            echo ::set-output name=artifact::${ARTIFACT}
+            echo ::set-output name=filename::${FILENAME}
             echo ::set-output name=buildinfo::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.buildinfo")
             echo ::set-output name=changes::$(find ${DPKG_BUILDPACKAGE_DST} -maxdepth 1 -iname "${PACKAGE}*.changes")
 
@@ -42,4 +45,4 @@ jobs:
         with:
           if-no-files-found: error 
           name: ${{ steps.buildpackage.outputs.filename }}
-          path: ${{ steps.buildpackage.outputs.filename }}
+          path: ${{ steps.buildpackage.outputs.artifact }}

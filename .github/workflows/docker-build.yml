@@ -1,5 +1,5 @@
 # When an annotation commit is pushed, it publish the docker image to dockerhub
-name: Docker build, release and push to DockerHub
+name: Docker build and push to DockerHub
 
 on:
   push:
@@ -7,8 +7,6 @@ on:
     - 'docker/**'
 
 env:
-  RELEASE: dockercompose
-  TITLE: "Docker image to run docker-compose as a systemd service"
   DOCKER_IMAGE_REPO: jriguera
   DOCKER_IMAGE_NAME: dockercompose
   DOCKER_BUILD_DIR: docker

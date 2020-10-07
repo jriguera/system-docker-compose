@@ -1,0 +1,52 @@
+name: Create a release
+
+on:
+  push:
+    tags:
+    - '*'
+
+env:
+  RELEASE: system-docker-compose
+  TITLE: "Docker image to run docker-compose as a systemd service"
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set release variables
+        id: release
+        run: |
+            tag=$(git describe --abbrev=0 --tags)
+            prevtag=$(git describe --abbrev=0 --tags "${tag}^")
+            changes=$(git log --pretty="%h %aI %s (%an)" "${prevtag}..${tag}" | sed 's/^/- /')
+            cat <<EOF > description.md
+            # $RELEASE version ${{needs.build.outputs.version}} (build tag: ${tag})
+            
+            $TITLE
+            
+            ## Changes since last version
+            
+            $changes
+            
+            EOF
+            echo ::set-output name=description::$(cat description.md)
+            echo ::set-output name=release::$(echo ${RELEASE})
+            echo ::set-output name=name::$(echo ${TITLE} version ${{needs.build.outputs.version}})
+            echo ::set-output name=tag::$(echo ${tag})
+ 
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{steps.release.outputs.tag}}
+          release_name: ${{steps.release.outputs.name}}
+          body_path: description.md
+          draft: false
+          prerelease: false
+
