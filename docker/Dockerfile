@@ -3,12 +3,12 @@
 # docker build . -t dockercompose
 # docker run --name compose -v /var/run/docker.sock:/var/run/docker.sock -v /root:/root -v $(pwd):$(pwd) -w $(pwd) -d dockercompose up -d
 
-FROM "python:3.9-alpine3.12"
+FROM "python:3.10-alpine3.12"
 
-ARG VERSION=1.27.4
+ARG VERSION=1.29.2
 ARG DOCKER_BASE_URL="https://download.docker.com/linux/static/stable/"
-ARG DOCKER_BIN_TGZ="docker-19.03.9.tgz"
-ARG MYVERSION=jose2
+ARG DOCKER_BIN_TGZ="docker-20.10.9.tgz"
+ARG MYVERSION=jose1
 ARG UID=1000
 ARG GUID=1000
 ARG TZ=Europe/Amsterdam

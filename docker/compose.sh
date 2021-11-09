@@ -24,15 +24,15 @@ load_oci_images() {
             case "${image}" in
                 *.tgz)
                     echo "Loading ${image}"
-                    echo ${DOCKER} load --input "${image}"
+                    ${DOCKER} load --input "${image}"
                 ;;
                 *.tar.gz)
                     echo "Loading ${image}"
-                    echo ${DOCKER} load --input "${image}"
+                    ${DOCKER} load --input "${image}"
                 ;;
                 *.tar)
                     echo "Loading ${image}"
-                    echo ${DOCKER} load --input "${image}"
+                    ${DOCKER} load --input "${image}"
                 ;;
                 *)
                     echo "Ignoring image ${image} ..."
