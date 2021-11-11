@@ -57,7 +57,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push to Github Packages and Google Container Registry if is not PR
+      - name: Build and push to Github Packages if is not PR
         uses: docker/build-push-action@v2
         with:
           platforms: ${{ env.DOCKER_BUILD_PLATFORMS }}
@@ -66,4 +66,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            MYVERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
